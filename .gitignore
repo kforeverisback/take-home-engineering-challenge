@@ -1,0 +1,53 @@
+# Cached builds
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Native
+*.so
+*.so.*
+*.dll
+*.dylib
+*.dylib.*
+
+# IDE and editors
+.cache/
+.project/
+
+# Distribution / packaging
+.Python
+build/
+dist/
+eggs/
+*.egg
+.eggs/
+lib/
+lib64/
+wheels/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.venv
+.env/
+.venv/
+env/
+venv/
+ENV/
