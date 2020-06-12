@@ -1,0 +1,23 @@
+{
+    "python.testing.pytestArgs": [
+        "src/tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.pytestEnabled": true,
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/.env": true,
+        "**/.py*":true,
+        "**/__pycache__":true,
+    },
+    "files.exclude": {
+        "**/.env": true,
+        "**/.py*":true,
+        "**/.pytest_cache*":true,
+        "**/__pycache__":true
+    },
+    "python.pythonPath": ".env/bin/python3",
+    "restructuredtext.confPath": "${workspaceFolder}\\docs"
+}

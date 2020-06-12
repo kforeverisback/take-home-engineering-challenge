@@ -18,5 +18,3 @@ repos:
   - id: fix-encoding-pragma
   - id: mixed-line-ending
   - id: trailing-whitespace
-  - id: check-json
-  - id: pretty-format-json
