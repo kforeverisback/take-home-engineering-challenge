@@ -1,6 +1,6 @@
 {
     "python.testing.pytestArgs": [
-        "src/tests"
+        "sffdtruck/tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.nosetestsEnabled": false,

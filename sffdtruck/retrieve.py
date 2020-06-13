@@ -40,6 +40,7 @@ def retrieve(check_update=True, timeout=3):
     If refresh_data is ``True`` then it will download the data from default URL
     TODO: Otherwise, first it will look for cached data, if not available or it's outdated then it will download
     """
+    csv_bytes = None
     is_newer = False
     if os.path.exists(CONSTS.csv_cache_file) and os.path.exists(
         CONSTS.kdtree_cache_file
@@ -54,12 +55,14 @@ def retrieve(check_update=True, timeout=3):
                 # We might still want to use
                 new_csv_bytes = download_csv(timeout=timeout)
                 if (
-                    new_csv_bytes is not None
-                    or hasher(new_csv_bytes).hexdigest()
+                    new_csv_bytes
+                    and hasher(new_csv_bytes).hexdigest()
                     != hasher(cached_csv_bytes).hexdigest()
                 ):
                     csv_bytes = update_cache(new_csv_bytes)
                     is_newer = True
+                else:
+                    csv_bytes = cached_csv_bytes
             except urlr.URLError as uerr:
                 sys.stderr.write(f"URL Error:{uerr}.\nUsing cached data")
                 csv_bytes = cached_csv_bytes
