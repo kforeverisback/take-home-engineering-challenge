@@ -4,11 +4,6 @@ import itertools
 import math
 from functools import wraps
 
-# Vincenty distance calculation
-# https://github.com/maurycyp/vincenty
-# from vincenty import vincenty as dist_vincenty
-# Haversine distance calculation
-# from haversine import haversine as dist_haversine, Unit
 dim = 2  # Constant for our case
 
 
@@ -37,8 +32,8 @@ class FTData:
         return len(self.latlon)
 
     def __repr__(self):
-        return f"({self.latlon})"
-        # return f'Item({self.latlon}, {self.data["Applicant"]}, {self.data["Address"]})'
+        # return f"{self.latlon}"
+        return f'ft <{self.latlon},{self.data["Applicant"]}, {self.data["Address"]}>'
 
 
 class FTNode:
@@ -53,11 +48,26 @@ class FTNode:
         self.right = right
         if dist_fn is None:
             self.dist_fn = dist_sq
+        else:
+            self.dist_fn = dist_fn
+
+    from itertools import count
+
+    global_counter = count()
+    """
+    Very important to have counter variable!!
+    Otherwise, the priority sort/push will if similar priorities are found
+    """
 
     def search(self, point, k=1):
         results = []
         _ = self.search_knn(point, results=results, k=k)
-        return [ftn for _, ftn in sorted(results, reverse=True)]
+        """
+        We reverse sort them, coz, we pused negative distance
+        Python uses MIN heap, hence we have to reverse it to get the
+        closest one first
+        """
+        return [ftn for _, _, ftn in sorted(results, reverse=True)]
 
     def search_knn(self, point, results, k):
         def closest_of_point(n1, n2):
@@ -73,9 +83,9 @@ class FTNode:
 
         if k < 1:
             raise ValueError("k must be greater than 0.")
-
+        # print(f'Processing: {self.ft_data}')
         cur_node_dist = self.dist_fn(self.ft_data, point)
-        q_item = (-cur_node_dist, self)
+        q_item = (-cur_node_dist, next(FTNode.global_counter), self)
         if len(results) >= k:
             if -cur_node_dist > results[0][0]:
                 heapq.heapreplace(results, q_item)
@@ -104,41 +114,7 @@ class FTNode:
             )
         return best
 
-    def search_knn2(self, point, k=1):
-        def closest_of_point(p1, p2):
-            if p1 is None:
-                return p2
-            if p2 is None:
-                return p1
-            # The target point is always the pivot
-            d1 = self.dist_fn(point, p1)
-            d2 = self.dist_fn(point, p2)
-
-            return p1 if d1 < d2 else p2
-
-        if k < 1:
-            raise ValueError("k must be greater than 0.")
-
-        if point[self.cur_axis] < self.ft_data[self.cur_axis]:
-            best_branch, opposite_branch = (self.left, self.right)
-        else:
-            best_branch, opposite_branch = (self.right, self.left)
-
-        best = closest_of_point(
-            best_branch.search_knn(point) if best_branch else None, self.ft_data
-        )
-
-        # Even if we found a best branch, the nearest neighbor could be lurking in the opposite one!
-        if self.dist_fn(point, best) > math.pow(
-            point[self.cur_axis] - self.ft_data[self.cur_axis], 2
-        ):
-            best = closest_of_point(
-                opposite_branch.search_knn(point) if opposite_branch else None, best
-            )
-
-        return best
-
-    def build_tree(ftdata_list=[], depth=0):
+    def build_tree(ftdata_list, depth=0, dist_fn=dist_sq):
 
         if ftdata_list is None or len(ftdata_list) <= 0:
             return None
@@ -153,7 +129,8 @@ class FTNode:
         return FTNode(
             median_data,
             cur_axis,
-            FTNode.build_tree(ftdata_list[:median_idx], depth + 1),
-            FTNode.build_tree(ftdata_list[median_idx + 1 :], depth + 1),
+            FTNode.build_tree(ftdata_list[:median_idx], depth + 1, dist_fn),
+            FTNode.build_tree(ftdata_list[median_idx + 1 :], depth + 1, dist_fn),
+            dist_fn=dist_fn,
         )
         # self.root = build_tree(list(ftdata_list))

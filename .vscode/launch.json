@@ -9,8 +9,8 @@
             "type": "python",
             "request": "launch",
             "module": "sffdtruck",
-            "cwd": "${workspaceFolder}/src",
-            "args": [],
+            "cwd": "${workspaceFolder}",
+            "args": ["-l", "37.7868016505971", "-122.397871635003", "--update"],
             "env": {
                 "PATH": "${env:PATH}"
             },

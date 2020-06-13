@@ -1,2 +1,2 @@
-harvesine
-vincenty
+haversine # https://github.com/mapado/haversine
+vincenty # https://github.com/maurycyp/vincenty
