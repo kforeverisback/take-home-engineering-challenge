@@ -40,16 +40,11 @@ class FTNode:
     def __repr__(self):
         return f"Node<{self.ft_data}>"
 
-    def __init__(self, ft_data, axis, left, right, dist_fn=None):
-        self.data = ft_data
+    def __init__(self, ft_data, axis, left, right):
         self.ft_data = ft_data
         self.cur_axis = axis
         self.left = left
         self.right = right
-        if dist_fn is None:
-            self.dist_fn = dist_sq
-        else:
-            self.dist_fn = dist_fn
 
     from itertools import count
 
@@ -59,9 +54,9 @@ class FTNode:
     Otherwise, the priority sort/push will if similar priorities are found
     """
 
-    def search(self, point, k=1):
+    def search(self, point, k=1, dist_fn=dist_sq):
         results = []
-        _ = self.search_knn(point, results=results, k=k)
+        _ = self.search_knn(point, results=results, k=k, dist_fn=dist_fn)
         """
         We reverse sort them, coz, we pused negative distance
         Python uses MIN heap, hence we have to reverse it to get the
@@ -69,22 +64,22 @@ class FTNode:
         """
         return [ftn for _, _, ftn in sorted(results, reverse=True)]
 
-    def search_knn(self, point, results, k):
+    def search_knn(self, point, results, k, dist_fn):
         def closest_of_point(n1, n2):
             if n1 is None:
                 return n2
             if n2 is None:
                 return n1
             # The target point is always the pivot
-            d1 = self.dist_fn(point, n1.ft_data)
-            d2 = self.dist_fn(point, n2.ft_data)
+            d1 = dist_fn(point, n1.ft_data)
+            d2 = dist_fn(point, n2.ft_data)
 
             return n1 if d1 < d2 else n2
 
         if k < 1:
             raise ValueError("k must be greater than 0.")
         # print(f'Processing: {self.ft_data}')
-        cur_node_dist = self.dist_fn(self.ft_data, point)
+        cur_node_dist = dist_fn(self.ft_data, point)
         q_item = (-cur_node_dist, next(FTNode.global_counter), self)
         if len(results) >= k:
             if -cur_node_dist > results[0][0]:
@@ -98,7 +93,8 @@ class FTNode:
             best_branch, opposite_branch = (self.right, self.left)
 
         best = closest_of_point(
-            best_branch.search_knn(point, results, k) if best_branch else None, self
+            best_branch.search_knn(point, results, k, dist_fn) if best_branch else None,
+            self,
         )
 
         # Even if we found a best branch, the nearest neighbor could be lurking in the opposite one!
@@ -107,14 +103,14 @@ class FTNode:
             or len(results) < k
         ):  # > math.pow(point[self.cur_axis] - self.ft_data[self.cur_axis], 2):
             best = closest_of_point(
-                opposite_branch.search_knn(point, results, k)
+                opposite_branch.search_knn(point, results, k, dist_fn)
                 if opposite_branch
                 else None,
                 best,
             )
         return best
 
-    def build_tree(ftdata_list, depth=0, dist_fn=dist_sq):
+    def build_tree(ftdata_list, depth=0):
 
         if ftdata_list is None or len(ftdata_list) <= 0:
             return None
@@ -129,8 +125,7 @@ class FTNode:
         return FTNode(
             median_data,
             cur_axis,
-            FTNode.build_tree(ftdata_list[:median_idx], depth + 1, dist_fn),
-            FTNode.build_tree(ftdata_list[median_idx + 1 :], depth + 1, dist_fn),
-            dist_fn=dist_fn,
+            FTNode.build_tree(ftdata_list[:median_idx], depth + 1),
+            FTNode.build_tree(ftdata_list[median_idx + 1 :], depth + 1),
         )
         # self.root = build_tree(list(ftdata_list))
