@@ -154,25 +154,34 @@ def main(args=None):
     csv_bytes, is_newer = retrieve(check_update=args.update, timeout=args.timeout)
     if is_newer:
         # We read CSV and 're-'build KDTree cache
-        with StringIO(csv_bytes) as sio:
-            all_csv_entries = list(csv.DictReader(sio))
-            valid_entries = [
-                kdtree.FTData(d)
-                for d in all_csv_entries
-                if float(d["Latitude"]) != 0 and float(d["Longitude"]) != 0
-            ]
-            if len(all_csv_entries) != len(valid_entries):
-                print(
-                    f"There were {len(all_csv_entries) - len(valid_entries)} entries with no Lat/Lon values"
-                )
-            tree_root = kdtree.FTNode.build_tree(valid_entries)
-            with open(CONSTS.kdtree_cache_file, "wb") as f:
-                # Pickle the 'data' dictionary using the highest protocol available.
-                pickle.dump(tree_root, f, pickle.HIGHEST_PROTOCOL)
-        pass
+        try:
+            with StringIO(csv_bytes) as sio:
+                all_csv_entries = list(csv.DictReader(sio))
+                valid_entries = [
+                    kdtree.FTData(d)
+                    for d in all_csv_entries
+                    if float(d["Latitude"]) != 0 and float(d["Longitude"]) != 0
+                ]
+                if len(all_csv_entries) != len(valid_entries):
+                    print(
+                        f"There were {len(all_csv_entries) - len(valid_entries)} entries with no Lat/Lon values"
+                    )
+                tree_root = kdtree.FTNode.build_tree(valid_entries)
+                if tree_root is None:
+                    raise ValueError("Cannot create tree from CSV data")
+                with open(CONSTS.kdtree_cache_file, "wb") as f:
+                    pickle.dump(tree_root, f, pickle.HIGHEST_PROTOCOL)
+                    # Pickle the 'data' dictionary using the highest protocol available.
+        except Exception as e:
+            print("Could not read csv and create tree", e)
+            exit(1)
     else:
-        with open(CONSTS.kdtree_cache_file, "rb") as f:
-            tree_root = pickle.load(f)
+        try:
+            with open(CONSTS.kdtree_cache_file, "rb") as f:
+                tree_root = pickle.load(f)
+        except Exception as e:
+            print("Cannot unpickle cached data", e)
+            exit(1)
 
     # Now we have a tree_root
     # Perform the search
