@@ -150,6 +150,9 @@ def get_output(out_type, input_nodes):
 
 def main(args=None):
     args = arg_parser().parse_args(args)
+    # Initilize cache dir
+    if not os.path.exists(CONSTS.cache_dir):
+        os.makedirs(CONSTS.cache_dir)
 
     csv_bytes, is_newer = retrieve(check_update=args.update, timeout=args.timeout)
     if is_newer:
