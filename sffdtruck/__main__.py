@@ -47,6 +47,13 @@ def arg_parser():
         "--count", "-c", default=5, type=int, help="""Number of locations to return.""",
     )
     parser.add_argument(
+        "--radius",
+        "-r",
+        default=float("Inf"),
+        type=float,
+        help="""Return results within {radius} Miles.""",
+    )
+    parser.add_argument(
         "--dist",
         "-d",
         default="haversine",
@@ -58,19 +65,36 @@ def arg_parser():
         "-f",
         default="plain",
         choices=["csv", "json", "plain"],
-        help="""Output format (in closest first order)""",
+        help="""Output format (shown in closest-first order)""",
     )
     parser.add_argument("--version", "-v", action="version", version=version)
     return parser
 
 
-def get_dist_fn(dist_type):
+def get_dist_fn(dist_type, radius_miles=float("Inf")):
+    def radius_dist(p1, p2, dist_fn):
+        d = dist_fn(p1, p2)
+        # Convert to km
+        if d <= radius_miles * 1.609344:
+            return d
+        else:
+            return float("Inf")
+
     if dist_type[0] == "h":
         dist_fn = dist_haversine
     elif dist_type[0] == "v":
         dist_fn = dist_vincenty
     else:
         dist_fn = kdtree.dist_sq
+
+    if radius_miles != float("Inf"):
+        if dist_type[0] == "e":
+            print(
+                "Euclidean lat/lon distance is not a real distance. Use Haversine or Vincenty distance for radius search\n"
+            )
+        else:
+            return lambda p1, p2: radius_dist(p1, p2, dist_fn)
+
     return dist_fn
 
 
@@ -153,7 +177,9 @@ def main(args=None):
     # Now we have a tree_root
     # Perform the search
     lat_lon = (float(args.lat_lon[0]), float(args.lat_lon[1]))
-    res = tree_root.search(lat_lon, k=args.count, dist_fn=get_dist_fn(args.dist[0]))
+    res = tree_root.search(
+        lat_lon, k=args.count, dist_fn=get_dist_fn(args.dist[0], args.radius)
+    )
 
     # s=json.dumps({'output':[r.ft_data.to_json() for r in res]}, indent=2)
     # for r in res:

@@ -80,12 +80,13 @@ class FTNode:
             raise ValueError("k must be greater than 0.")
         # print(f'Processing: {self.ft_data}')
         cur_node_dist = dist_fn(self.ft_data, point)
-        q_item = (-cur_node_dist, next(FTNode.global_counter), self)
-        if len(results) >= k:
-            if -cur_node_dist > results[0][0]:
-                heapq.heapreplace(results, q_item)
-        else:
-            heapq.heappush(results, q_item)
+        if cur_node_dist != float("Inf"):
+            q_item = (-cur_node_dist, next(FTNode.global_counter), self)
+            if len(results) >= k:
+                if -cur_node_dist > results[0][0]:
+                    heapq.heapreplace(results, q_item)
+            else:
+                heapq.heappush(results, q_item)
 
         if point[self.cur_axis] < self.ft_data[self.cur_axis]:
             best_branch, opposite_branch = (self.left, self.right)
