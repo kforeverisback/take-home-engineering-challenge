@@ -1,5 +1,5 @@
 # Submission
-Submitted a Python module named `sffdtruck`. It can be used from command line interface.
+Submitted a Python ( $\geq$ 3.6) module named `sffdtruck`. It can be used from command line interface.
 Running the command line would give you {count} number of Food Truck locations along with their name and address.
 See [Features](#features) for full list of features
 
